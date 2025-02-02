@@ -37,11 +37,6 @@ use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 use App\Filament\Resources\Admin\ClassesResource\Pages;
 use pxlrbt\FilamentExcel\Actions\Tables\ExportBulkAction;
-use App\Filament\Resources\Admin\ClassesResource\RelationManagers;
-use App\Filament\Resources\Admin\ClassesResource\Pages\EditClasses;
-use App\Filament\Resources\Admin\ClassesResource\Pages\ListClasses;
-use App\Filament\Resources\Admin\ClassesResource\Pages\ViewClasses;
-use App\Filament\Resources\Admin\ClassesResource\Pages\CreateClasses;
 
 class ClassesResource extends Resource
 {

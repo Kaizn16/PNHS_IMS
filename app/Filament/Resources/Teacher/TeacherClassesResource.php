@@ -2,8 +2,6 @@
 
 namespace App\Filament\Resources\Teacher;
 
-use Filament\Forms;
-use Filament\Tables;
 use App\Models\Classes;
 use App\Models\Student;
 use App\Models\Subject;
@@ -15,6 +13,7 @@ use Filament\Tables\Table;
 use App\Helpers\SectionsHelper;
 use Filament\Resources\Resource;
 use App\Helpers\YearLevelsHelper;
+use App\Rules\OverlappingSchedule;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Filament\Forms\Components\Select;
@@ -32,8 +31,6 @@ use Filament\Tables\Actions\DeleteBulkAction;
 use Filament\Tables\Actions\RestoreBulkAction;
 use Filament\Tables\Actions\ForceDeleteBulkAction;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
-use App\Filament\Resources\Teacher\TeacherClassesResource\Pages;
-use App\Filament\Resources\Teacher\TeacherClassesResource\RelationManagers;
 use App\Filament\Resources\Teacher\TeacherClassesResource\Pages\EditTeacherClasses;
 use App\Filament\Resources\Teacher\TeacherClassesResource\Pages\ListTeacherClasses;
 use App\Filament\Resources\Teacher\TeacherClassesResource\Pages\ViewTeacherClasses;
@@ -43,9 +40,7 @@ class TeacherClassesResource extends Resource
 {
     protected static ?string $model = Classes::class;
     protected static ?string $navigationIcon = 'heroicon-o-calendar-days';
-    protected static ?string $navigationLabel = 'My Classes';
-    protected static ?string $slug = 'My-Classes';
-    protected static ?string $navigationGroup = 'Class Management';
+    protected static ?string $slug = 'Classes';
 
     public static function canCreate(): bool
     {
@@ -64,7 +59,7 @@ class TeacherClassesResource extends Resource
                     ->searchable()
                     ->preload()
                     ->live()
-                    ->required(),
+                    ->required(),                            
                 Select::make('teacher_id')
                     ->label('Teacher')
                     ->options(Teacher::query()
@@ -84,13 +79,14 @@ class TeacherClassesResource extends Resource
                     })
                     ->preload()
                     ->live()
+                    ->reactive()
                     ->required(),
                 Select::make('subject_id')
                     ->label('Subject')
                     ->options(function (Get $get): Collection {
                 
                         $teacher = Teacher::where('user_id', Auth::id())->first();
-                
+                        
                         if (!$teacher || !is_array($teacher->subjects_handle)) {
                             return collect();
                         }
@@ -101,6 +97,7 @@ class TeacherClassesResource extends Resource
                     })
                     ->searchable()
                     ->live()
+                    ->reactive()
                     ->required(),
                 Select::make('year_level')
                     ->options(YearLevelsHelper::YEAR_LEVELS)
@@ -125,10 +122,12 @@ class TeacherClassesResource extends Resource
                             $query->where('section', $section);
                         }
                 
-                        return $query->pluck('full_name', 'student_id');
+                        return $query->pluck('full_name', 'student_id')->toArray();
                     })
                     ->multiple()
                     ->preload()
+                    ->live()
+                    ->reactive()
                     ->required()
                     ->columnSpanFull(),                                               
                 Section::make('')
@@ -163,7 +162,7 @@ class TeacherClassesResource extends Resource
                             ->required(),
                     ])->columnSpanFull()
             ]);
-    }
+    } 
 
     public static function table(Table $table): Table
     {
